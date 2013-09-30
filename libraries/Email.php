@@ -42,8 +42,8 @@ class Email {
 				# SMTP settings
 					$mail->Host       = SMTP_HOST; 
 					$mail->SMTPAuth   = true; 
-					$mail->SMTPSecure = 'ssl';
-					$mail->Port       = (SMTP_PORT) ? SMTP_PORT : 465; 
+					$mail->SMTPSecure = 'ssl';	
+					$mail->Port       = (defined('SMTP_PORT')) ? SMTP_PORT : 465;
 					$mail->Username   = SMTP_USERNAME; 
 					$mail->Password   = SMTP_PASSWORD; 						
 			}

@@ -15,7 +15,7 @@ define('DISPLAY_ERRORS', TRUE);
 # To avoid accidentally sending a mass amount of emails to your users when testing, always disable outgoing emails on your local environment
 define('ENABLE_OUTGOING_EMAIL', FALSE);
 
-# To learn more about fakemail, goto /core/controllers/c_app.php test_fakemail()
+# To learn more about fakemail, goto /core/controllers/c_coreutils.php test_fakemail()
 define('FAKEMAIL', TRUE);
 
 # Toggle this based on whether you want to connect to your local DB or your live DB

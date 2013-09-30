@@ -29,7 +29,7 @@ class index_controller extends base_controller {
 	    	$client_files_body = Array("");
 	    	$this->template->client_files_body = Utils::load_client_files($client_files_body);   
 	    	*/
-	      		
+	      					     		
 		# Render the view
 			echo $this->template;
 

@@ -2,10 +2,8 @@
 /*
 General app specific controller stored at the core level.
 Allows for some general tasks like managing cookies, running tests, etc.
-
-Do not edit (it's in core).
 */
-class app_controller {
+class coreutils_controller {
 
 	public function __construct() {	
 	}
@@ -85,12 +83,36 @@ class app_controller {
 		
 		$to[]    = Array("name" => APP_NAME, "email" => SYSTEM_EMAIL);
 		$from    = Array("name" => APP_NAME, "email" => APP_EMAIL);
-		$subject = "Testing fakemail ".Time::now();							
+		$subject = "Testing fakemail ".Time::display(Time::now());							
 		$body    = $subject;
+		
+		# Debug
+		echo Debug::dump($to,"to");
+		echo Debug::dump($from,"from");
 			
 		# Send email
 		echo "Send email: ".Email::send($to, $from, $subject, $body, true, '');
 		
 	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public function test_email() {
+		
+		$to[]    = Array("name" => APP_NAME, "email" => SYSTEM_EMAIL);
+		$from    = Array("name" => APP_NAME, "email" => APP_EMAIL);
+		$subject = "Testing email ".Time::display(Time::now());
+		$body    = $subject;
+			
+		# Debug
+		echo Debug::dump($to,"to");
+		echo Debug::dump($from,"from");
+		
+		# Send email
+		echo "Send email:" .Email::send($to, $from, $subject, $body, true, '');
+	}
+	
 
 } // eoc
