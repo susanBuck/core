@@ -1,0 +1,9 @@
+2013-09-27 18:48:17 - INFO --> -------------------------- 
+2013-09-27 18:48:17 - INFO --> Controller/Method: app/test-fakemail 
+2013-09-27 18:48:17 - INFO --> From: Sample App (webmaster@sample-app.com) 
+2013-09-27 18:48:17 - INFO --> To: Sample App (webmaster@myapp.com),  
+2013-09-27 18:48:17 - INFO --> CC:  
+2013-09-27 18:48:17 - INFO --> BCC:  
+2013-09-27 18:48:17 - INFO --> Subject: Testing fakemail 1380322097 
+2013-09-27 18:48:17 - INFO --> Body: Testing fakemail 1380322097 
+2013-09-27 18:48:17 - INFO --> FAILED TO SEND EMAIL 
