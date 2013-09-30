@@ -16,7 +16,7 @@ define('DISPLAY_ERRORS', TRUE);
 define('ENABLE_OUTGOING_EMAIL', FALSE);
 
 # To learn more about fakemail, goto /core/controllers/c_coreutils.php test_fakemail()
-define('FAKEMAIL', TRUE);
+define('FAKEMAIL', FALSE);
 
 # Toggle this based on whether you want to connect to your local DB or your live DB
 define('REMOTE_DB', FALSE);
