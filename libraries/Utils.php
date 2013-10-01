@@ -266,6 +266,8 @@ class Utils {
 	
 	}
 	
+	
+	
 	/*-------------------------------------------------------------------------------------------------
 	A JS version of this exists in /core/js/code_mirror.js
 	-------------------------------------------------------------------------------------------------*/
@@ -278,15 +280,23 @@ class Utils {
 	
 		# Inline (cmi's) aren't showing up in IE..As a fix, replace with a basic <code> tag instead of a code mirror
 		if(strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE')) {
-		
+			
 			// For CMI's with html tags...Replace the first < to prevent it eating up everything after it. 
 			$content = str_replace("<cmi><", "<code>&lt;", $content); 
 			
+			// Closing tag
+			$content = str_replace("></cmi>", "&gt;</code>", $content); 
+			
+			// KNOWN ISSUE: When there's a start and end tag in a cmi
+			// The closing tag ends up rendering
+			// Class: <cmi><div class='footer'> © 2012 </div></cmi>
+		
 			// Now for CMI's without tags
 			$content = str_replace("<cmi>", "<code>", $content); // Replace the first < to prevent it eating up everything after it. 
 			
 			// Closing cmi is same regardless of tag or not
 			$content = str_replace("</cmi>", "</code>", $content);
+			
 		}
 		# All other browsers can get code mirrored
 		else {
