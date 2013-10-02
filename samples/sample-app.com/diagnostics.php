@@ -37,10 +37,7 @@ APP Path: <?php echo $app_path  ?>
 Doc Root: <?php echo $doc_root; ?>
 <br>
 PHP Version: <?php echo phpversion(); ?>
-<br>
-Server timezone: <?php echo date_default_timezone_get(); ?>
-<br>
-Short open tags: <?php print_r($ini['short_open_tag']); ?>
+<br><br>
 
 <?php if($environment): ?>
 	<div class='pass'>environment.php exists</div>
