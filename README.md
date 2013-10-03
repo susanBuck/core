@@ -1,7 +1,7 @@
 ## Full documentation
 <http://dwa15.com/Framework/Intro>
 
-## Span a new app
+## Spawn a new app
 Duplicate `sample-environment.ph` and `sample-app.com` outside of the `samples/` folder so that they're parallel to `core/`
 
 Example:
