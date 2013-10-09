@@ -1,6 +1,4 @@
 <?php
-
-# Database Class
 class DB {
 
 	# Instance connection
@@ -12,7 +10,7 @@ class DB {
 	# Singleton DB instance
 	private static $instance;
 	
-	# Toggle whether to always re-select the database -- it is a performance drain
+	# Toggle whether to always re-select the database (it is a performance drain)
 	public static $always_select = FALSE;
 
 	# Debugging, don't send queries
@@ -206,12 +204,13 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	When you just want to get one single value from the database
-	Does *not* sanitize
-	Returns the value (no array)
+	Purpose: Get one single field
+	Sanitizes: No
+	Params: $sql String
+	Returns: String
 	
 	Ex:
-	$user_id = DB::instance(DB_NAME)->select_field("SELECT user_id FROM users WHERE id = 55");
+	$user_id = DB::instance(DB_NAME)->select_field('SELECT user_id FROM users WHERE id = 55');
 	-------------------------------------------------------------------------------------------------*/
 	public function select_field($sql) {
 
@@ -224,13 +223,15 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	Select a single row from the database
-	Optional $type can be 'assoc', 'array' or 'object'
-	Does *not* sanitize
-	Returns an array
-	
+	Purpose: Select a single row
+	Sanitizes: No
+	Params: 
+		$sql string
+		(optional) $type 'assoc', 'array' or 'object'
+	Returns: Array or Object
+		
 	Ex:
-	$user_details = DB::instance(DB_NAME)->select_row("SELECT * FROM users WHERE id = 55");
+	$user_details = DB::instance(DB_NAME)->select_row('SELECT * FROM users WHERE id = 55');
 	-------------------------------------------------------------------------------------------------*/	
 	public function select_row($sql, $type = 'assoc') {
 
@@ -242,9 +243,15 @@ class DB {
 	
 	
 	/*-------------------------------------------------------------------------------------------------
-	Returns all the rows in an array
-	Does *not* sanitize
-	Optional $type can be 'assoc', 'array' or 'object'
+	Purpose: Select multiple rows
+	Sanitizes: No
+	Params:
+		$sql String
+		(optional) $type 'assoc', 'array' or 'object'
+	Returns: Array or Object
+
+	Ex:
+	$users = DB::instance(DB_NAME)->select_rows('SELECT * FROM users');
 	-------------------------------------------------------------------------------------------------*/
 	public function select_rows($sql, $type = 'assoc') {
 
@@ -261,23 +268,17 @@ class DB {
 
 	}
 	
+		
+	/*-------------------------------------------------------------------------------------------------
+	Purpose: Return a key->value array given two columns
+	Sanitizes: No
+	Params:
+		$sql String
+		$key_column String
+		$value_column String
 	
-	/*-------------------------------------------------------------------------------------------------
-	Alias to select_row for objects
-	Does *not* sanitize
-	-------------------------------------------------------------------------------------------------*/
-	public function select_object($sql) {
-		
-		return $this->select_row($sql, 'object');
-		
-	}
-		
-		
-	/*-------------------------------------------------------------------------------------------------
-	Return a key->value array given two columns
-	Does *not* sanitize
 	Ex:
-	$users = DB::instance(DB_NAME)->select_kv("SELECT user_id, first_name FROM users", 'user_id', 'name');
+	$users = DB::instance(DB_NAME)->select_kv('SELECT user_id, first_name FROM users', 'user_id', 'name');
 	-------------------------------------------------------------------------------------------------*/
 	public function select_kv($sql, $key_column, $value_column) {
 				
@@ -296,10 +297,14 @@ class DB {
 	
 	
 	/*-------------------------------------------------------------------------------------------------
-	Takes select_rows one step further by making the index of the results array some specified field
-	For example, if you wanted a full array of users where the index was the user_id, you could use this.
-	Key column must be unique, otherwise data will overwrite itself in the array.
-	Does *not* sanitize
+	Purpose: 
+		Takes select_rows one step further by making the index of the results array some specified field
+		For example, if you wanted a full array of users where the index was the user_id, you could use this.
+		Key column must be unique, otherwise data will overwrite itself in the array.
+	Sanitizes: No
+	Params:
+		$sql String
+		$key_column String
 	
 	Ex: 
 	$users = DB::instance(DB_NAME)->select_array('SELECT * FROM users', 'user_id');
@@ -310,7 +315,7 @@ class DB {
 		
 		foreach ($this->select_rows($sql) as $row) {
 			
-			# avoid empty keys, but 0 is okay
+			# Avoid empty keys, but 0 is okay
 			if ($row[$key_column] !== NULL && $row[$key_column] !== "")
 				$array[$row[$key_column]] = $row;
 		}
@@ -321,47 +326,53 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	Insert a row given an array of key => values
-	Returns the id of the row that was inserted
-	Does sanitize
+	Purpose: Insert a row given an array of key => values
+	Sanitizes: Yes
+	Params:
+		$table String
+		$data Array
+	Returns: INT - The id of the row that was inserted
 	
 	Ex:
-	$data    = Array("first_name" => "Joe", "last_name" => "Smith");
-	$user_id = DB::instance(DB_NAME)->insert("users", $data);
+	$data    = Array('first_name' => 'Sam', 'last_name' => 'Seaborn');
+	$user_id = DB::instance(DB_NAME)->insert('users', $data);
 	-------------------------------------------------------------------------------------------------*/
 	# Alias 
 	public function insert($table, $data) { return self::insert_row($table, $data); }
 	public function insert_row($table, $data) {
-						
-		# setup insert statement
+				
+		# Setup insert statement
 		$sql = "INSERT INTO $table SET";
 
-		# add columns and values
+		# Add columns and values
 		foreach ($data as $column => $value)
 			$sql .= " $column = '".$this->connection->real_escape_string($value)."',";
 
-		# remove trailing comma
+		# Remove trailing comma
 		$sql = substr($sql, 0, -1);
 
-		# perform query
+		# Perform query
 		$this->query($sql);
 
-		# return auto_increment id
+		# Return auto_increment id
 		return $this->connection->insert_id;
 
 	}
 	
 	
 	/*-------------------------------------------------------------------------------------------------
-	Accepts multi-dimensional $data array of rows
-	Returns number of rows affected
-	Does sanitize
+	Purpose: Inserts a multi-dimensional array of rows
+	Sanitizes: Yes
+	Params:
+		$table String
+		$data Array
+	Returns: INT - number of rows inserted
 	
 	Ex:
-	$data[] = Array("first_name" => "John", "last_name" => "Smith");
-	$data[] = Array("first_name" => "Jane", "last_name" => "Doe");
+	$data[] = Array('first_name' => 'Sam', 'last_name' => 'Seaborn');
+	$data[] = Array('first_name' => 'Claudia', 'last_name' => 'Cregg');
 		
-	$results = DB::insert(DB_NAME)->insert_rows("users", $data);
+	$results = DB::insert(DB_NAME)->insert_rows('users', $data);
 	-------------------------------------------------------------------------------------------------*/
 	public function insert_rows($table, $data) {
 	
@@ -402,9 +413,13 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	Update a single row given an array of key => values
-	example $where_condition: "WHERE id = 1 LIMIT 1"
-	Does sanitize
+	Purpose: Update a single row given an array of key => values
+	Sanitizes: Yes
+	Params:
+		$table String
+		$data Array
+		$where_condition String		
+	Returns: INT - Num of affected rows
 	
 	Ex:
 	$data = Array("first_name" => "John");
@@ -414,7 +429,7 @@ class DB {
 	public function update($table, $data, $where_condition) { return self::update_row($table, $data, $where_condition); }
 	public function update_row($table, $data, $where_condition) {
 	
-		# setup update statement
+		# Setup update statement
 		$sql = "UPDATE $table SET";
 
 		# add columns and values
@@ -442,14 +457,18 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	If the primary key exists update row, otherwise insert row
-	Requires primary id be first part of the data array - that's what it uses to check for duplicate
-	Returns the created id
-	Does sanitize
-	
+	Purpose: 
+		If the primary key exists update row, otherwise insert row. 
+		Requires primary id be first part of the data array - that's what it uses to check for duplicate
+	Sanitizes: Yes
+	Params:
+		$table String
+		$data Array	
+	Returns: INT - The created id
+
 	Ex:
-	$data    = Array("user_id" => 50", "first_name" => "Joe", "last_name" => "Smith");
-	$user_id = DB::instance(DB_NAME)->update_or_insert_row("users", $data);
+	$data    = Array('user_id' => 50, 'first_name' => 'Sam', 'last_name' => 'Seaborn');
+	$user_id = DB::instance(DB_NAME)->update_or_insert_row('users', $data);
 	-------------------------------------------------------------------------------------------------*/
 	public function update_or_insert_row($table, $data) {
 	
@@ -483,24 +502,28 @@ class DB {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	Just like above method, but for multiple rows
-	If the primary key exists update, otherwise insert
-	
-	Requires primary id be first part of the data array - that's what it uses to check for duplicate
-	Requires all fields to be present, otherwise a missing field will get set to blank
-	Does sanitize
-	
-	Example SQL string result:
+	Purpose: 
+		Just like update_or_insert_row, but for multiple rows.
+		If the primary key exists update, otherwise insert.
+		Requires primary id be first part of the data array - that's what it uses to check for duplicate.
+		Requires all fields to be present, otherwise a missing field will get set to blank.
+		
+		Example SQL string it generates:
 	
 		INSERT INTO tasks (person_id,first_name,email) 
-		VALUES (1,'Ethel','ethel@aol.com'),(3,'Leroy','leroy@hotmail.com'),(3,'Francis','francis@gmail.com')
+		VALUES (1,'Sam','sam@whitehouse.giv'),(3,'Claudia','cregg@whitehouse.giv'),(3,'Toby','ziegler@whitehouse.giv')
 		ON DUPLICATE KEY UPDATE first_name=VALUES(first_name),email=VALUES(email)'
-	
+	Sanitizes: Yes
+	Params: 
+		$table String
+		$data Array
+	Returns: INT - Number of affected rows
+		
 	Ex:
-		$data[] = Array("person_id" => 1, "first_name" => 'Ethel', "email" => 'ethel@aol.com');
-		$data[] = Array("person_id" => 2, "first_name" => 'Leroy', "email" => 'leroy@hotmail.com');
-		$data[] = Array("person_id" => 3, "first_name" => 'Francis', "email" => 'francis@gmail.com.com');	
-		$update = DB::instance("courses_webstartwomen_com")->update_or_insert_rows('people', $data);						
+		$data[] = Array('person_id' => 1, 'first_name' => 'Sam', 'email' => 'seaborn@whitehouse.gov');
+		$data[] = Array('person_id' => 2, 'first_name' => 'Claudia', 'email' => 'cregg@whitehouse.giv');
+		$data[] = Array('person_id' => 3, 'first_name' => 'Toby', 'email' => 'ziegler@whitehouse.gov');	
+		$update = DB::instance(DB_NAME)->update_or_insert_rows('users', $data);						
 	-------------------------------------------------------------------------------------------------*/
 	public function update_or_insert_rows($table, $data) {
 	
@@ -545,11 +568,15 @@ class DB {
 		
 
 	/*-------------------------------------------------------------------------------------------------
-	Ex:
-	DB::instance(DB_NAME)->delete('users', "WHERE email = 'max@gmail.com'");
-	Does *not* sanitize
+	Purpose: Delete row(s)
+	Sanitizes: No
+	Params:
+		$table String
+		$where_condition String
+	Returns: INT - 1 if it found something to delete
 	
-	Returns 1 if it found something to delete
+	Ex:
+	DB::instance(DB_NAME)->delete('users', "WHERE email = 'sam@whitehouse.gov'");
 	-------------------------------------------------------------------------------------------------*/
 	public function delete($table, $where_condition) {
 
@@ -561,8 +588,10 @@ class DB {
 	
 	
 	/*-------------------------------------------------------------------------------------------------
-	Accepts an array or string of data
-	Returns escaped data
+	Purpose: Santize an Array or String of data
+	Sanitizes: Yes
+	Params: $data Array or String
+	Returns: Array or String - escaped data
 	
 	Ex:
 	$_POST = DB::instance(DB_NAME)->sanitize($_POST);
@@ -584,8 +613,6 @@ class DB {
 		}
 
 		return $data;
-	
 	}
 	
-	
-}
+} # eoc

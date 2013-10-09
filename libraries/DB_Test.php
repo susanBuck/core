@@ -1,7 +1,7 @@
 <?php
 /*
 This is an example of unit testing using PHP SimpleTest (http://www.simpletest.org/)
-To try out these tests, see the example given in myapp.com/c_tests.php
+To try out these tests, see the example given in core/c_coreutils.php:test_database()
 */
 
 class DB_Test extends UnitTestCase {
@@ -128,22 +128,7 @@ class DB_Test extends UnitTestCase {
     }
     
     
-    /*-------------------------------------------------------------------------------------------------
-    
-    -------------------------------------------------------------------------------------------------*/
-    function testSelectObject() {
-    
-    	self::__insert();
-    	
-    	$user = DB::instance($this->db_name)->select_object("SELECT * FROM users WHERE first_name = 'Joe'");
-        		
-    	$this->assertIsA($user, 'stdClass');
-    	
-    	self::__delete();
-    
-    }
-    
-    
+     
     /*-------------------------------------------------------------------------------------------------
     
     -------------------------------------------------------------------------------------------------*/
