@@ -38,7 +38,7 @@ class coreutils_controller {
 	using PHP SimpleTest (http://www.simpletest.org/)
 	
 	To run, download SimpleTest and set the correct path below. 
-	Then, run this method (ex: http://localhost/app/test-database)
+	Then, run this method (ex: http://localhost/coreutils/test-database)
 	
 	To see what tests are being run, open /core/libraries/DB_Test.php.
 	
@@ -47,9 +47,24 @@ class coreutils_controller {
 	-------------------------------------------------------------------------------------------------*/
 	public function test_database() {
 		
-		# Correct with your actual path to SimpleTest
-		require_once(DOC_ROOT."/simpletest/autorun.php");
+		if(IN_PRODUCTION) die('This method can not be run while in poduction.');
 		
+		if(REMOTE_DB) die('This method can not be run on the remote database.');
+		
+		/*
+		If running simpletest from this example controller, a copy of SimpleTest 
+		needs to be downloaded and put in the following location.
+		*/
+		$simpletest_path = DOC_ROOT."shared/vendors/simpletest/autorun.php";
+		
+		if(file_exists($simpletest_path)) {
+			include($simpletest_path);
+		}
+		else {
+			die('simpletest could not be located at '.$simpletest_path);
+		}
+		
+		# Run tests
 		$test = New DB_Test();
 			
 	}
