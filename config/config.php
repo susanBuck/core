@@ -35,6 +35,8 @@
 
 # Default time format
 	if(!defined('TIME_FORMAT')) define('TIME_FORMAT', 'F j, Y g:ia'); 
+	
+# Default geolocation feature
 	if(!defined('ENABLE_GEOLOCATION')) define('ENABLE_GEOLOCATION', TRUE);
 	
 # Default encrypting salts	
@@ -49,7 +51,7 @@
 
 # Default app settings
 	if(!defined('APP_EMAIL')) define('APP_EMAIL', 'webmaster@myapp.com'); # Should match domain name to avoid hitting the spam box
-	if(!defined('APP_NAME')) define('APP_NAME', 'My APp'); # Should match domain name to avoid hitting the spam box
+	if(!defined('APP_NAME')) define('APP_NAME', 'My App'); # Should match domain name to avoid hitting the spam box
 	if(!defined('SYSTEM_EMAIL')) define('SYSTEM_EMAIL', 'webmaster@myapp.com'); 
 
 # Whether or not to send outgoing emails - default to on.
