@@ -30,6 +30,8 @@ $environment = file_exists($doc_root."../environment.php");
 $core = file_exists($doc_root."../core/");
 ?>
 
+Server API: <?php echo php_sapi_name(); ?>
+<br>
 APP Path: <?php echo $app_path  ?>
 <br>
 Doc Root: <?php echo $doc_root; ?>
@@ -48,6 +50,7 @@ PHP Version: <?php echo phpversion(); ?>
 <?php else: ?>
 	<div class='fail'>core/ is missing</div>
 <?php endif; ?>
+
 
 
 
