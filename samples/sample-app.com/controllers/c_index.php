@@ -12,7 +12,7 @@ class index_controller extends base_controller {
 	/*-------------------------------------------------------------------------------------------------
 	Accessed via http://localhost/index/index/
 	-------------------------------------------------------------------------------------------------*/
-	public function index() {
+	public function index() {	
 		
 		# Any method that loads a view will commonly start with this
 		# First, set the content of the template with a view file
