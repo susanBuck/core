@@ -1,8 +1,18 @@
 <?php
 
-// library for re-usable utility functions
-// All methods should be static, accessed like: Utils::method(...);
+# Library for re-usable utility functions
 class Utils {
+
+
+	/*-------------------------------------------------------------------------------------------------
+	Run htmlentities over the given string, with UTF-8 support.
+	-------------------------------------------------------------------------------------------------*/
+	public static function e($string = NULL) {
+	
+		return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+	
+	}
+
 
 	/*-------------------------------------------------------------------------------------------------
 	
@@ -177,23 +187,40 @@ class Utils {
 	public static function force_https($to_https = true) {
 	
 		$url = $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-		//$url = str_replace("index.php/", "", $url);
 	
-        if ($to_https) {
-            // force https if not already
-            if (! isset($_SERVER["HTTPS"])) {            	
+        if($to_https) {
+            # Force https if not already
+            if (!isset($_SERVER["HTTPS"])) {            	
                 Router::redirect("https://".$url);
             } 
         }
         else {
-            // force http if not already
-            if (isset($_SERVER["HTTPS"])) {
+            # Force http if not already
+            if(isset($_SERVER["HTTPS"])) {
                 Router::redirect("http://".$url);
             } 
         }
 	 
 	}
 
+	
+	/*-------------------------------------------------------------------------------------------------
+	Good for when you just need dump a post array or something similar into an admin email
+	-------------------------------------------------------------------------------------------------*/
+	public static function format_array_for_email($data) {
+	
+		if(is_array($data)) {
+			$body = '';
+			foreach($data as $k => $v) {
+				$body .= $k.' : '.$v.'<br>';
+			}
+			
+			return $body.'<br><br>';
+		}
+		
+		return false;
+	
+	}
 
 	/*-------------------------------------------------------------------------------------------------
 	
@@ -234,87 +261,107 @@ class Utils {
 		Email::send($to, $from, $subject, $body, true, '', '');
 		
 	}
-
-
+	
+	
 	/*-------------------------------------------------------------------------------------------------
-	types: message, error
+	Set session helper
 	-------------------------------------------------------------------------------------------------*/
-	public static function quick_view($template, $message, $title = NULL, $type = 'message') {
-	
-		# Setup view
-			$template->content     		= View::instance('v_message');
-			$template->title       		= $title;
-			$template->content->message = $message;
-			$template->content->type    = $type;
-			$template->hide_menu 		= TRUE;
-			$template->hide_footer 		= TRUE;
-			$template->js_location      = 'head'; # Because we're using internal JS
-		
-		# Render view 
-			echo $template;
-	
+	public static function set_session($key,$value = NULL) {
+		$_SESSION[$key] = $value;
 	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	Get session helper
+	-------------------------------------------------------------------------------------------------*/
+	public static function get_session($key, $unset = true) {
+
+		if(isset($_SESSION[$key])) {
+			$value = $_SESSION[$key];
+			if($unset) unset($_SESSION[$key]);
+			return $value;
+		}
+		
+		return NULL;
+		
+	}
+
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function get_flash_message() {
+	
+		$flash_message 		 = self::get_session('flash_message');
+		$flash_message_class = self::get_session('flash_message_class');
+	
+		if(isset($flash_message)) {
+		
+			$flash  = '<div id="flash_message" class="'.$flash_message_class.'">';
+			$flash .= $flash_message;
+			$flash .= "<span class='icon'>%</span>";
+			$flash .= '</div>';
+				
+			return $flash;
+		}
+		else {
+			return '';
+		}
+	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function set_flash_message($msg, $class = 'default') {
+		self::set_session('flash_message', $msg);
+		self::set_session('flash_message_class', $class);		
+	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function non_ambiguous_string($length = 4) {
+		
+		$string = '';
+		
+		# A list of characters that are not visually ambiguous. I.e. not 0 or O
+		$chars  = Array('1','3','4','6','7','9','a','c','d','e','f','g','h','k','m','n','p','q','r','u','v');
+		
+		$picks  = array_rand($chars,$length);
+		foreach($picks as $k => $v) {
+			$string .= $chars[$v];
+		}
+		
+		return $string;
+		
+	}
+
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function die_useful($msg = NULL) {
+
+		echo "<h1>".$msg."</h1>";
+		echo APP_EMAIL."<br>";
+		echo "<a href='".APP_URL."'>".APP_URL."</a>";
+		die();
+		
+	}
+	
 	
 	/*-------------------------------------------------------------------------------------------------
 	
 	-------------------------------------------------------------------------------------------------*/
 	public static function post_only($post, $destination) {
 	
-		if(!$post) 
-			return Router::redirect($destination);
+		if(!$post) return Router::redirect($destination);
 	
 	}
 	
 	
-	
-	/*-------------------------------------------------------------------------------------------------
-	A JS version of this exists in /core/js/code_mirror.js
-	-------------------------------------------------------------------------------------------------*/
-	public static function code_mirror_replace_tags($content, $insert_line_breaks = FALSE) {
-	
-		$content = str_replace("</textarea", "&lt;/textarea", $content);
-		
-		$content = str_replace("<code>", "<textarea class='code'>", $content);
-		$content = str_replace("</code>", "</textarea>", $content);
-	
-		# Inline (cmi's) aren't showing up in IE..As a fix, replace with a basic <code> tag instead of a code mirror
-		if(strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE')) {
-			
-			// For CMI's with html tags...Replace the first < to prevent it eating up everything after it. 
-			$content = str_replace("<cmi><", "<code>&lt;", $content); 
-			
-			// Closing tag
-			$content = str_replace("></cmi>", "&gt;</code>", $content); 
-			
-			// KNOWN ISSUE: When there's a start and end tag in a cmi
-			// The closing tag ends up rendering
-			// Class: <cmi><div class='footer'> © 2012 </div></cmi>
-		
-			// Now for CMI's without tags
-			$content = str_replace("<cmi>", "<code>", $content); // Replace the first < to prevent it eating up everything after it. 
-			
-			// Closing cmi is same regardless of tag or not
-			$content = str_replace("</cmi>", "</code>", $content);
-			
-		}
-		# All other browsers can get code mirrored
-		else {
-			$content = str_replace("<cmi>", "<textarea class='code inline'>", $content);
-			$content = str_replace("</cmi>", "</textarea>", $content);
-		}
-	
-		// Don't include the closing > so that we can include attributes such as data_mode
-		$content = str_replace("<cm", "<textarea class='code' ", $content);
-		$content = str_replace("</cm>", "</textarea>", $content);
-				
-				
-		if($insert_line_breaks) 
-			$content = str_replace("\n", "<br>", $content);
-		
-		return $content;
-	}
-
-
 	/*-------------------------------------------------------------------------------------------------
 	
 	-------------------------------------------------------------------------------------------------*/
@@ -344,11 +391,11 @@ class Utils {
 
 
 	/*-------------------------------------------------------------------------------------------------
-	given an array of k/v cookies, creates cookie(s) through PHP for the session	
+	Given an array of k/v cookies, creates cookie(s) through PHP for the session	
 	-------------------------------------------------------------------------------------------------*/
 	public static function set_cookies($cookies) {
 		
-		// set cookies for current session (if headers haven't been sent already), not accessible until next request
+		# Set cookies for current session (if headers haven't been sent already), not accessible until next request
 		if (! headers_sent()) {
 			foreach ($cookies as $name => $value)
 				setcookie($name, $value, strtotime('+1 year'), '/');
@@ -469,7 +516,10 @@ class Utils {
 
 	}
 
-	// just converts to simplexml, then to array via simplexml_to_array
+
+	/*-------------------------------------------------------------------------------------------------
+	Converts to simplexml, then to array via simplexml_to_array
+	-------------------------------------------------------------------------------------------------*/
 	public static function xml_to_array($xml, $attributesKey = null, $childrenKey = null) {
 
 		$simpleXML = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
@@ -507,6 +557,53 @@ class Utils {
 		
 	}
 	
+	
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function phonetic($char) {
+        
+        $nato = array(
+            "a" => "alfa", 
+            "b" => "bravo", 
+            "c" => "charlie", 
+            "d" => "delta", 
+            "e" => "echo", 
+            "f" => "foxtrot", 
+            "g" => "golf", 
+            "h" => "hotel", 
+            "i" => "india", 
+            "j" => "juliett", 
+            "k" => "kilo", 
+            "l" => "lima", 
+            "m" => "mike", 
+            "n" => "november", 
+            "o" => "oscar", 
+            "p" => "papa", 
+            "q" => "quebec", 
+            "r" => "romeo", 
+            "s" => "sierra", 
+            "t" => "tango", 
+            "u" => "uniform", 
+            "v" => "victor", 
+            "w" => "whisky", 
+            "x" => "x-ray", 
+            "y" => "yankee", 
+            "z" => "zulu", 
+            "0" => "zero", 
+            "1" => "one", 
+            "2" => "two", 
+            "3" => "three", 
+            "4" => "four", 
+            "5" => "five", 
+            "6" => "six", 
+            "7" => "seven", 
+            "8" => "eight", 
+            "9" => "niner"
+            );
+ 
+        return $nato[strtolower($char)];
+    }
 	
 	
 
