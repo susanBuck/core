@@ -10,6 +10,8 @@ class User {
 	
 	private $token;
 	
+	private $users_table;
+	
 	public function __construct($users_table = 'users') {
 		
 		# Look for the token cookie
@@ -17,8 +19,7 @@ class User {
 			$this->token = $_COOKIE['token'];
 		}
 		
-		$this->users_table = $users_table;
-	
+		$this->users_table    = $users_table;
 		$this->email_template = View::instance('_v_email');		
 	}
 
@@ -26,7 +27,11 @@ class User {
 	/*-------------------------------------------------------------------------------------------------
 	
 	-------------------------------------------------------------------------------------------------*/
-	public function authenticate() {
+	public function authenticate($user_id = NULL) {
+		
+		if($user_id) {
+			$this->token = DB::instance(DB_NAME)->select_field('SELECT token FROM users WHERE user_id = '.$user_id);
+		}
 		
 		# If we have cookie token, load that user
 		if(!empty($this->token)) {
@@ -60,7 +65,7 @@ class User {
 					if(@!$this->_user->avatar) 
 						$this->_user->avatar = PLACE_HOLDER_IMAGE;
 					else 
-						$this->_user->avatar = AVATAR_PATH.$this->_user->avatar;	
+						$this->_user->avatar = AVATAR_URL.$this->_user->avatar;	
 												
 					$this->_user->avatar_small  = Utils::postfix("_200_200", $this->_user->avatar);
 					$this->_user->avatar_medium = Utils::postfix("_600_400", $this->_user->avatar);
@@ -131,6 +136,7 @@ class User {
 		}
 		# Fail - try and figure out why
 		else {
+		
 			# Do we even have a user with that email?
 			$q = "SELECT email 
 				FROM ".$this->users_table." 
@@ -210,7 +216,7 @@ class User {
 	public function create_initial_avatar($user_id) {
 			
 		# What we'll call the avatar and where it'll be saved
-		$file_name = APP_PATH.AVATAR_PATH.$user_id.".png";	
+		$file_name = AVATAR_PATH.$user_id.".png";	
 					
 		# Instantiate image object
 		$imgObj = new Image($file_name);		
@@ -219,7 +225,7 @@ class User {
 		$imgObj->generate_random_image(600,400, TRUE);
 					
 		# Name and path for $thumb
-		$thumb_filename = APP_PATH.AVATAR_PATH.$user_id."_".SMALL_W."_".SMALL_H.".png";	
+		$thumb_filename = AVATAR_PATH.$user_id."_".SMALL_W."_".SMALL_H.".png";	
 		
 		# Now resize and save thumb
 		$imgObj->resize(200,200);
