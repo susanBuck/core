@@ -110,6 +110,12 @@ class File {
 
 			require $path;
 			return TRUE;
+			
+		// try the /shared/libraries folders
+		} elseif ($path = File::find('../shared/libraries/'.$class)) {
+
+			require $path;
+			return TRUE;
 
 		} 
 
