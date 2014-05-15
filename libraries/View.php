@@ -7,20 +7,148 @@ Variables can be assigned with the view object and referenced locally within the
 
 class View {
 
-	// Array of global variables
+	# Array of global variables
 	protected static $_global_data = array();
 	
-	// View filename
+	# View filename
 	protected $_file;
 
-	// Array of local variables
+	# Array of local variables
 	protected $_data = array();	
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	Sets the initial view filename and local data. Views should almost
+	always only be created using [View::instance].
+	$view = new View($file);
+	-------------------------------------------------------------------------------------------------*/
+	public function __construct($file = NULL, array $data = NULL) {
 
-	// Returns a new View object. If you do not define the "file" parameter, you must call [View::set_filename].
-	// $view = View::instance($file);	
+		if ($file !== NULL) {
+
+			$this->set_filename($file);
+
+		}
+
+		if ($data !== NULL) {
+
+			// Add the values to the current data
+			$this->_data = $data + $this->_data;
+
+		}
+	}
+
+	/*-------------------------------------------------------------------------------------------------
+	Returns a new View object. If you do not define the "file" parameter, you must call [View::set_filename].
+	$view = View::instance($file);	
+	-------------------------------------------------------------------------------------------------*/
 	public static function instance($file = NULL, array $data = NULL) {
-
-		return new View($file, $data);
+		return new View($file, $data);		
+	}
+	
+		
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public static function load_assets($head_or_body) {
+		
+		$contents        = "";
+		$controller      = Router::$controller;
+		$method          = str_replace('-','_',Router::$method);
+		
+		# Get the app's client files configuration
+		$assets = Spyc::YAMLLoad(COMBINED_ASSETS_CONFIG);		
+				
+		# COMPRESSED -->
+		if(USE_COMBINED_ASSETS) {
+			
+			foreach(Array('.css','.js') as $ext) {
+				
+				# Master compressed
+				$file_name = 'master_master_'.$head_or_body.$ext;
+				if(file_exists(COMBINED_ASSETS_PATH.$file_name)) {
+					$contents .= self::__create_client_include_string($file_name, TRUE);
+				}
+				
+				# Method compressed
+				$file_name = $controller.'_'.$method.'_'.$head_or_body.$ext;
+				if(file_exists(COMBINED_ASSETS_PATH.$file_name)) {
+					$contents .= self::__create_client_include_string($file_name, TRUE);
+				}
+			}
+		
+		}
+		
+		# UNCOMPRESSED -->
+		# If LOCAL, check client_files.yml to see what we need to load
+		else {
+		
+			# Master files (all of them individually, not compressed)
+			$master_files = $assets['master']['master'][$head_or_body];	
+			foreach($master_files as $file_name) {
+				$contents .= self::__create_client_include_string($file_name);
+			}
+		
+			# Method files
+			if(isset($assets[$controller][$method][$head_or_body])) {
+				$files = $assets[$controller][$method][$head_or_body];
+				
+				# If body or head was empty, this may be empty so check first
+				if(is_array($files)) {
+					foreach($files as $file_name) {
+		            	$contents .= self::__create_client_include_string($file_name);
+					}
+				}
+			}
+	       
+		}
+		
+		if(isset($_GET['debug'])) {
+			echo "<pre>";		
+			echo $head_or_body.":";
+			echo str_replace('<','<br>&lt;',$contents);
+			echo "</pre>";
+			echo "<br>";
+		}
+		
+		return $contents;
+		
+	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	Returns a HTML <script> (for JS) or <link> for (CSS) element
+	If compressed is set to TRUE it will look for the file in COMBINED_ASSETS_PATH
+	-------------------------------------------------------------------------------------------------*/
+	private static function __create_client_include_string($file_name, $compressed = FALSE) {
+	
+		$path = ($compressed) ? COMBINED_ASSETS_URL.self::__extract_file_name_from_path($file_name) : $file_name;
+		
+		# Cache bust should be set in app's config file
+		if(defined('CACHE_BUST')) {
+			$path .= "?cb=".CACHE_BUST;
+		}
+		
+		# CSS
+		if(strstr($path,".css")) {
+			return '<link rel="stylesheet" type="text/css" href="'.$path.'">';
+		}
+		# JS           
+        elseif(strstr($path,".js")) {		
+        	return '<script src="'.$path.'"></script>';	
+        }
+		
+	}
+	
+	
+	/*-------------------------------------------------------------------------------------------------
+	given something like /path/to/file.txt, returns just file.txt
+	-------------------------------------------------------------------------------------------------*/
+	private static function __extract_file_name_from_path($path) {
+		
+		$path      = explode('/', $path);
+		$file_name = array_pop($path);
+		return $file_name;
 		
 	}
 
@@ -87,24 +215,7 @@ class View {
 
 	}
 
-	// Sets the initial view filename and local data. Views should almost
-	// always only be created using [View::instance].
-	// $view = new View($file);
-	public function __construct($file = NULL, array $data = NULL) {
-
-		if ($file !== NULL) {
-
-			$this->set_filename($file);
-
-		}
-
-		if ($data !== NULL) {
-
-			// Add the values to the current data
-			$this->_data = $data + $this->_data;
-
-		}
-	}
+	
 
 	// Magic method, searches for the given variable and returns its value.
 	// Local variables will be returned before global variables.
@@ -170,9 +281,7 @@ class View {
 	// Sets the view filename.
 	// $view->set_filename($file);
 	public function set_filename($file, $search_path = NULL) {
-		
-		//$search_path = SISTER_APP_PATH;
-		
+	
 		if (($path = File::find('views/'.$file, $search_path)) === FALSE) {
 
 			throw new Exception("The requested view $file could not be found");
