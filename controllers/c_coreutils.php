@@ -5,9 +5,88 @@ Allows for some general tasks like managing cookies, running tests, etc.
 */
 class coreutils_controller {
 
-	public function __construct() {	
-	}
 
+	/*-------------------------------------------------------------------------------------------------
+	
+	-------------------------------------------------------------------------------------------------*/
+	public function combiner() {
+
+		if(IN_PRODUCTION) die('Combiner can not be run when IN_PRODUCTION=true');		
+	
+		echo "<pre>";
+				
+		# Get yml config file that maps all the client files to controllers/methods
+			$assets = Spyc::YAMLLoad(COMBINED_ASSETS_CONFIG);
+			
+			if(sizeof($assets) < 2) {
+				die('Error loading assets. Make sure '.COMBINED_ASSETS_CONFIG.' exists and has data');
+			}
+					
+		# Make sure our desination directory exists and is writable	
+			if(!file_exists(COMBINED_ASSETS_PATH)) {
+				die('ERROR: '.COMBINED_ASSETS_PATH.' is missing; create it and try again.');
+			}
+			elseif(!is_writable(COMBINED_ASSETS_PATH)) {
+				die('ERROR: '.COMBINED_ASSETS_PATH.' is not writable.');
+			}
+		
+		# Debugging info
+			echo '<a href="'.COMBINED_ASSETS_URL.'" target="_blank">View combined directory</a><br><br>';
+			echo "COMBINED_ASSETS_CONFIG: ".COMBINED_ASSETS_CONFIG."<br>"; 
+			echo "COMBINED_ASSETS_URL: ".COMBINED_ASSETS_URL."<br>"; 
+			echo "COMBINED_ASSETS_PATH: ".COMBINED_ASSETS_PATH."<br><br>"; 
+
+		//array_map('unlink', glob(COMBINED_ASSETS_PATH));
+
+		# Build files
+		foreach($assets as $controller_name => $methods):
+			foreach($methods as $method_name => $locations):
+				if(is_array($locations)) {		
+				foreach($locations as $location_name => $location):
+					
+					# Fresh slate for each method
+					$compress_css = Array();
+					$compress_js  = Array();
+					
+					if(is_array($location)) {
+					# Split CSS and JS
+					foreach($location as $k => $file):
+					
+						# Use APP_URL here instead of APP_PATH because the paths in assets.yml are client paths, not server paths
+						if(strstr($file,'.css')) {
+							$compress_css[] = APP_URL.$file;
+						}
+						elseif(strstr($file,'.js')) {
+							$compress_js[] = APP_URL.$file;
+						}
+						
+					endforeach;
+					}
+					
+					# Process CSS
+					if(!empty($compress_css)) {
+						$destination = COMBINED_ASSETS_PATH.$controller_name.'_'.$method_name.'_'.$location_name.'.css';
+						$c = new Compress($compress_css, $destination);
+						$c->save();
+					}
+					
+					# Process JS
+					if(!empty($compress_js)) {
+						$destination = COMBINED_ASSETS_PATH.$controller_name.'_'.$method_name.'_'.$location_name.'.js';
+						$c = new Compress($compress_js, $destination);
+						$c->save();
+					}
+	
+				endforeach;	
+				}
+			endforeach;
+		endforeach;
+		
+		echo "</pre>";
+		echo Debug::dump($assets,"Made");
+				
+	} # eom
+	
 
 	/*-------------------------------------------------------------------------------------------------
 		

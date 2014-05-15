@@ -1,5 +1,5 @@
 <?php
-/* 
+/*
 Report information about our environment
 
 Red    = Could cause damage with live data / live users...be very careful.
@@ -21,6 +21,9 @@ if(!IN_PRODUCTION && !Utils::is_ajax()) {
 		}
 		echo "&nbsp;&nbsp;<span style='color:".$color."'>".Time::display(Time::now())."</span>&nbsp;&nbsp;";
 		
+		if(USE_COMBINED_ASSETS) {
+			echo "USE_COMBINED_ASSETS ";
+		}
 		
 		# OUTGOING EMAIL
 		if(ENABLE_OUTGOING_EMAIL) {
