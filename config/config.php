@@ -3,12 +3,24 @@
 # Http protocol
 	if(!defined('PROTOCOL')) define('PROTOCOL', (isset($_SERVER['HTTPS'])) ? 'https://' : 'http://');
 
-# App url
+# App url (ex: http://foobar.com)
 	if(!defined('APP_URL')) define('APP_URL', PROTOCOL.$_SERVER['HTTP_HOST'].'/');
+	
+# App domain (Same as above but without the protocol, ex: foobar.com)
+	if(!defined('APP_DOMAIN')) define('APP_DOMAIN', $_SERVER['HTTP_HOST'].'/');
 	
 # Admins	
 	if(!defined('ADMINS')) define('ADMINS', serialize(Array()));
-		
+	
+# Client side asset combiner
+	# Overwrite in environment.php
+	if(!defined('USE_COMBINED_ASSETS')) define('USE_COMBINED_ASSETS', TRUE);
+
+	# Overwrite in /app/config.php
+	if(!defined('COMBINED_ASSETS_PATH')) define('COMBINED_ASSETS_PATH', APP_PATH.'combined/');
+	if(!defined('COMBINED_ASSETS_URL')) define('COMBINED_ASSETS_URL', APP_URL.'combined/');
+	if(!defined('COMBINED_ASSETS_CONFIG')) define('COMBINED_ASSETS_CONFIG', APP_PATH.'config/assets.yml');
+	
 # All routes go through index.php	
 	define('ROUTER', 'index.php');
 
@@ -24,11 +36,16 @@
     
 # Error reporting - default to off. Set in environment.php to turn on
 	if(!defined('DISPLAY_ERRORS')) define('DISPLAY_ERRORS', FALSE);
-	
-	if(DISPLAY_ERRORS) 
-		error_reporting(-1); // Report all PHP errors
-	else 
-		error_reporting(0); // Turn off all error reporting
+		
+	if(DISPLAY_ERRORS) {
+		error_reporting(-1); # Report all PHP errors
+		if(function_exists('ini_set')) {
+			ini_set('display_errors', 1);
+		}
+	}
+	else {
+		error_reporting(0); # Turn off all error reporting
+	}
 	
 # Default log location
 	if(!defined('LOG_PATH')) define('LOG_PATH', APP_PATH.'logs/');
