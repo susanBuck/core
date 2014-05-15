@@ -443,17 +443,23 @@ class Form {
 	/*-------------------------------------------------------------------------------------------------
 	
 	-------------------------------------------------------------------------------------------------*/
-	public function select($field, $options, $value = NULL, $html = NULL) {
+	public function select($field, $options, $value = NULL, $html = NULL, $option_html = NULL) {
 		
 		# Populate with 50 States
-		if($options == "state_list")   $options = $this->state_list;
-		if($options == "country_list") $options = $this->country_list;
+		if($options == "state_list_acronym") {
+			$options = Array();
+			foreach($this->state_list as $key => $value) {
+				$options[$key] = $key;
+			}
+		}
+		if($options == "state_list")         $options = $this->state_list;
+		if($options == "country_list")       $options = $this->country_list;
 				
 		$value = (empty($this->data[$field])) ? $value : $this->data[$field];
 		$input = '<select id="'.$field.'" name="'.$field.'" '.$html.'>'."\n";
 		foreach ((array) $options as $key => $val) {
 			$sel = ($key == $value) ? ' SELECTED' : '';
-			$input .= '<option value="'.$key.'"'.$sel.' '.$html.'>'.$val.'</option>'."\n";
+			$input .= '<option value="'.$key.'"'.$sel.' '.$option_html.'>'.$val.'</option>'."\n";
 		}
 		$input .= '</select>';
 		
